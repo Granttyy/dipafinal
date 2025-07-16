@@ -1,0 +1,210 @@
+{
+  "Pampanga State University": {
+    "logo": "psu.png",
+    "address": "Bacolor, Pampanga, Philippines",
+    "what_theyre_known_for": "Affordable quality education and strong engineering licensure performance.",
+    "institutional_strengths": ["Engineering", "Agriculture"],
+    "unirank": {
+      "country_rank": 48,
+      "world_rank": 5432
+    },
+    "dorm_apartment": "On-campus dormitories and nearby apartments available.",
+    "transport_access": "Along Jose Abad Santos Ave., accessible via jeepneys and tricycles.",
+    "scholarships_offered": ["CHED UniFAST-TES", "Academic Scholarships", "Athletic Grants"],
+    "virtual_tour_photos": ["psu_campus.jpg", "psu_library.jpg"],
+    "maps_query": "Pampanga State University, Bacolor",
+    "coords": { "lat": 15.032098, "lng": 120.706010 }
+  },
+  "Pampanga State Agricultural University": {
+    "logo": "psau.png",
+    "address": "Magalang, Pampanga, Philippines",
+    "what_theyre_known_for": "Top-400 in WURI rankings, known for agriculture and research.",
+    "institutional_strengths": ["Agriculture", "Engineering", "Information Technology"],
+    "unirank": {
+      "country_rank": 56,
+      "world_rank": 5823
+    },
+    "dorm_apartment": "Dormitories and nearby housing available.",
+    "transport_access": "Accessible via local jeepneys; near Mt. Arayat road network.",
+    "scholarships_offered": ["DA Agri Scholarships", "TES Grants", "Academic Incentives"],
+    "virtual_tour_photos": ["psau_main.jpg", "psau_fields.jpg"],
+    "maps_query": "Pampanga State Agricultural University, Magalang",
+    "coords": { "lat": 15.196346, "lng": 120.681045 }
+  },
+  "Bulacan State University": {
+    "logo": "bulsu.png",
+    "address": "Malolos, Bulacan, Philippines",
+    "what_theyre_known_for": "Top-ranked in Liberal Arts, Business, and Engineering.",
+    "institutional_strengths": ["Business", "Education", "Engineering", "Environmental Science"],
+    "unirank": {
+      "country_rank": 19,
+      "world_rank": 4351
+    },
+    "dorm_apartment": "Nearby private boarding houses available.",
+    "transport_access": "Along Malolos main road; near bus terminals and provincial jeepneys.",
+    "scholarships_offered": ["CHED Grants", "Local Gov't Scholarships", "University Merit Grants"],
+    "virtual_tour_photos": ["bulsu_front.jpg", "bulsu_lab.jpg"],
+    "maps_query": "Bulacan State University, Malolos",
+    "coords": { "lat": 14.842238, "lng": 120.811207 }
+  },
+  "UPEP PAMPANGA": {
+    "logo": "UP.png",
+    "address": "Clark, Pampanga, Philippines",
+    "what_theyre_known_for": "Focused on research, extension, and indigenous studies.",
+    "institutional_strengths": ["Extension Programs", "Research", "Management"],
+    "unirank": {
+      "country_rank": 1,
+      "world_rank": 1200
+    },
+    "dorm_apartment": "Limited UP housing; nearby private dormitories available.",
+    "transport_access": "Located inside Clark Freeport Zone; accessible via Grab, jeepneys, and shuttles.",
+    "scholarships_offered": ["UP Oblation Scholarship", "STFAP", "Research Grants"],
+    "virtual_tour_photos": ["upep_building.jpg", "upep_clark.jpg"],
+    "maps_query": "University of the Philippines, Clark Pampanga",
+    "coords": { "lat": 15.192753, "lng": 120.580748 }
+  },
+  "City College of San Fernando": {
+    "logo": "ccsfp.png",
+    "address": "San Fernando, Pampanga, Philippines",
+    "what_theyre_known_for": "Focused on local teacher education and public service.",
+    "institutional_strengths": ["Education", "Community Development"],
+    "unirank": {
+      "country_rank": 98,
+      "world_rank": 9400
+    },
+    "dorm_apartment": "No on-campus housing; affordable boarding nearby.",
+    "transport_access": "Within city proper; accessible via jeepneys and tricycles.",
+    "scholarships_offered": ["Local Gov’t Assistance", "TES Program"],
+    "virtual_tour_photos": ["ccsf_main.jpg"],
+    "maps_query": "City College of San Fernando Pampanga",
+    "coords": { "lat": 15.035714, "lng": 120.683953 }
+  },
+  "City College of Angeles": {
+    "logo": "cca.png",
+    "address": "Angeles City, Pampanga, Philippines",
+    "what_theyre_known_for": "Vocational and community programs for local employment.",
+    "institutional_strengths": ["Community Education", "Vocational Programs"],
+    "unirank": {
+      "country_rank": 104,
+      "world_rank": 9782
+    },
+    "dorm_apartment": "Nearby dorms and apartments available.",
+    "transport_access": "Easily accessible via Angeles City jeep routes.",
+    "scholarships_offered": ["TES Program", "LGU Vouchers"],
+    "virtual_tour_photos": ["cca_building.jpg"],
+    "maps_query": "City College of Angeles",
+    "coords": { "lat": 15.145374, "lng": 120.589881 }
+  },
+  "Mabalacat City College": {
+    "logo": "mcc.png",
+    "address": "Mabalacat, Pampanga, Philippines",
+    "what_theyre_known_for": "Vocational and technical training for community development.",
+    "institutional_strengths": ["Local Skills Training", "Community Development"],
+    "unirank": {
+      "country_rank": 102,
+      "world_rank": 9600
+    },
+    "dorm_apartment": "No official dorms; rental apartments nearby.",
+    "transport_access": "Along MacArthur Highway; accessible via buses and jeepneys.",
+    "scholarships_offered": ["TES Grants", "Local Education Assistance"],
+    "virtual_tour_photos": ["mcc_campus.jpg"],
+    "maps_query": "Mabalacat City College",
+    "coords": { "lat": 15.180751, "lng": 120.548940 }
+  },
+  "Holy Angel University": {
+    "logo": "hau.png",
+    "address": "Angeles City, Pampanga, Philippines",
+    "what_theyre_known_for": "Top private university in Central Luzon; strong in Business and Engineering.",
+    "institutional_strengths": ["Business", "Information Technology", "Engineering"],
+    "unirank": {
+      "country_rank": 9,
+      "world_rank": 3215
+    },
+    "dorm_apartment": "Multiple private dorms and apartments around the campus.",
+    "transport_access": "Downtown Angeles City; accessible via public and private transport.",
+    "scholarships_offered": ["Entrance Scholarships", "Financial Aid", "Academic Honors"],
+    "virtual_tour_photos": ["hau_campus.jpg", "hau_techhub.jpg"],
+    "maps_query": "Holy Angel University, Angeles City",
+    "coords": { "lat": 15.145066, "lng": 120.590374 }
+  },
+  "AMA Computer College – Angeles City": {
+    "logo": "ama.png",
+    "address": "Angeles City, Pampanga, Philippines",
+    "what_theyre_known_for": "Asia’s first ICT university; pioneer in IT and e-Learning.",
+    "institutional_strengths": ["Information Technology", "E-Learning"],
+    "unirank": {
+      "country_rank": 30,
+      "world_rank": 6020
+    },
+    "dorm_apartment": "Nearby apartments and boarding houses available.",
+    "transport_access": "Near main roads; accessible by jeepneys, trikes, and buses.",
+    "scholarships_offered": ["Academic Scholarships", "Tech Vouchers"],
+    "virtual_tour_photos": ["ama_campus.jpg"],
+    "maps_query": "AMA Computer College Angeles City",
+    "coords": { "lat": 15.146151, "lng": 120.597275 }
+  },
+  "Angeles University Foundation": {
+    "logo": "auf.png",
+    "address": "Angeles City, Pampanga, Philippines",
+    "what_theyre_known_for": "Autonomous university with CHED Centers of Development.",
+    "institutional_strengths": ["Research", "Faculty Quality", "Centers of Development"],
+    "unirank": {
+      "country_rank": 6,
+      "world_rank": 2950
+    },
+    "dorm_apartment": "On-campus and off-campus accommodations available.",
+    "transport_access": "Along MacArthur Highway; jeep and bus accessible.",
+    "scholarships_offered": ["AUF Scholarships", "CHED Grants", "Entrance Awards"],
+    "virtual_tour_photos": ["auf_main.jpg", "auf_science.jpg"],
+    "maps_query": "Angeles University Foundation",
+    "coords": { "lat": 15.125144, "lng": 120.590248 }
+  },
+  "University of the Assumption": {
+    "logo": "ua.png",
+    "address": "San Fernando, Pampanga, Philippines",
+    "what_theyre_known_for": "Catholic archdiocesan university known for leadership and liberal arts.",
+    "institutional_strengths": ["Liberal Arts", "Community Service"],
+    "unirank": {
+      "country_rank": 25,
+      "world_rank": 5100
+    },
+    "dorm_apartment": "Nearby apartments and housing for students.",
+    "transport_access": "Easily accessible within San Fernando downtown area.",
+    "scholarships_offered": ["UA Institutional Scholarships", "Catholic Foundation Grants"],
+    "virtual_tour_photos": ["ua_campus.jpg"],
+    "maps_query": "University of the Assumption, San Fernando Pampanga",
+    "coords": { "lat": 15.034181, "lng": 120.676632 }
+  },
+  "Our Lady Of Fatima University": {
+    "logo": "fatima.png",
+    "address": "Angeles City, Pampanga, Philippines",
+    "what_theyre_known_for": "Strong in Medical and Paramedical programs; high licensure rates.",
+    "institutional_strengths": ["Medical & Paramedical Programs", "Nursing", "Affordable Education"],
+    "unirank": {
+      "country_rank": 13,
+      "world_rank": 3500
+    },
+    "dorm_apartment": "Nearby dormitories and private housing options.",
+    "transport_access": "Near Nepo Center; accessible via jeepneys and shuttles.",
+    "scholarships_offered": ["Medical Scholarships", "Nursing Grants", "Fatima Entrance Award"],
+    "virtual_tour_photos": ["fatima_main.jpg", "fatima_med.jpg"],
+    "maps_query": "Our Lady of Fatima University Angeles City",
+    "coords": { "lat": 15.130202, "lng": 120.582461 }
+  },
+  "CELTECH": {
+    "logo": "celtech.png",
+    "address": "Angeles City, Pampanga, Philippines",
+    "what_theyre_known_for": "Vocational school known for tech and IT training.",
+    "institutional_strengths": ["Information Technology", "Vocational Training"],
+    "unirank": {
+      "country_rank": 120,
+      "world_rank": 9999
+    },
+    "dorm_apartment": "Nearby low-cost dormitories available.",
+    "transport_access": "Along Angeles jeepney route; near transport terminals.",
+    "scholarships_offered": ["Technical Vouchers", "TES", "City Subsidies"],
+    "virtual_tour_photos": ["celtech_building.jpg"],
+    "maps_query": "Celtech Institute Angeles City",
+    "coords": { "lat": 15.141025, "lng": 120.591518 }
+  }
+}
