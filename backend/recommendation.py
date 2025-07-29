@@ -2,14 +2,24 @@ import json
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 import numpy as np
+from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # add this at the top, after imports
+
+MONGO_URI = os.getenv("MONGO_URI")
+client = MongoClient(MONGO_URI)
+db = client["unifinder"]
 
 model = SentenceTransformer("all-mpnet-base-v2")
 
-with open("data/program_vectors.json", "r", encoding="utf-8") as f:
-    program_data = json.load(f)
+# Load program_data from MongoDB
+program_data = list(db["program_vectors"].find({}, {"_id": 0}))
 
-with open("data/school_rankings.json", "r", encoding="utf-8") as f:
-    rankings_data = json.load(f)["programs"]
+# Load rankings_data from MongoDB (get 'programs' field from first doc)
+rankings_doc = db["school_rankings"].find_one({}, {"_id": 0})
+rankings_data = rankings_doc["programs"] if rankings_doc and "programs" in rankings_doc else {}
 
 THRESHOLD = 0.3
 CATEGORY_WEIGHT = 0.3  # weight of the school rating in final score
