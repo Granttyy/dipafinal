@@ -6,25 +6,43 @@ from fastapi.responses import JSONResponse
 from recommendation import recommend
 import json
 import os
+from pymongo import MongoClient
+from fastapi import Query
+from fastapi import HTTPException
 
 app = FastAPI()
 
 # 🌍 CORS setup
+import os
+
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# MongoDB connection (same as insert_data.py)
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # add this at the top, after imports
+
+MONGO_URI = os.getenv("MONGO_URI")
+client = MongoClient(MONGO_URI)
+db = client["unifinder"]
+
 # 📁 Load all programs (for testing or front-end fallback)
 @app.get("/programs/all")
 def get_all_programs():
-    file_path = os.path.join("data", "all_programs.json")
-    with open(file_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return JSONResponse(content=data)
+    try:
+        collection = db["all_programs"]
+        data = list(collection.find({}, {"_id": 0}))
+        return JSONResponse(content=data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # 📨 Model for request body
 class SearchRequest(BaseModel):
@@ -49,8 +67,8 @@ def search(data: SearchRequest):
 # 📂 Serve program_vectors.json
 @app.get("/programs/from-file")
 def get_programs_from_file():
-    with open("data/program_vectors.json", "r", encoding="utf-8") as f:
-        data = json.load(f)
+    collection = db["program_vectors"]
+    data = list(collection.find({}, {"_id": 0}))
     return JSONResponse(content=data)
 
 @app.get("/programs/showcase")
@@ -227,3 +245,30 @@ def get_program_showcase():
             "school_type": "Public"
         }
     ]
+
+@app.get("/api/school-strengths")
+def get_school_strengths():
+    doc = db["school_strengths"].find_one({}, {"_id": 0})
+    return JSONResponse(content=doc if doc else {})
+
+@app.get("/school-rankings")
+def get_school_rankings():
+    collection = db["school_rankings"]
+    doc = collection.find_one({}, {"_id": 0})
+    return JSONResponse(content=doc if doc else {})
+
+@app.get("/programs/search")
+def search_programs(
+    name: str = Query(None, max_length=100),
+    location: str = Query(None, max_length=100),
+    category: str = Query(None, max_length=100)
+):
+    query = {}
+    if name:
+        query["name"] = {"$regex": name, "$options": "i"}
+    if location:
+        query["location"] = {"$regex": location, "$options": "i"}
+    if category:
+        query["category"] = {"$regex": category, "$options": "i"}
+    data = list(db["all_programs"].find(query, {"_id": 0}))
+    return JSONResponse(content=data)
