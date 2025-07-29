@@ -12,7 +12,6 @@ import {
   Ruler
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import schoolStrengths from "../data/school_strengths.json";
 
 const knownCities = [
   "San Fernando", "Angeles", "Mabalacat", "Apalit", "Bacolor", "Candaba", "Magalang", "Malolos", "Mexico", "Porac"
@@ -53,6 +52,7 @@ function ResultsSection({ results, message }) {
   const [manualCity, setManualCity] = useState(
     localStorage.getItem("manualCity") || ""
   );
+  const [schoolStrengths, setSchoolStrengths] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -89,6 +89,12 @@ function ResultsSection({ results, message }) {
         }
       );
     }
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/school-strengths")
+      .then((res) => res.json())
+      .then((data) => setSchoolStrengths(data));
   }, []);
 
   const displayedCity = manualCity || userCity;

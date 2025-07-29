@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MapPin,
   BookOpen,
@@ -10,9 +10,8 @@ import {
   Globe,
   Image as ImageIcon
 } from "lucide-react";
-import schoolStrengths from "../data/school_strengths.json";
 
-function findSchoolData(schoolName) {
+function findSchoolData(schoolName, schoolStrengths) {
   const normalizedName = schoolName.toLowerCase();
 
   for (const key in schoolStrengths) {
@@ -27,6 +26,13 @@ function findSchoolData(schoolName) {
 export default function ComparePage() {
   const location = useLocation();
   const selectedSchools = location.state?.selectedSchools || [];
+  const [schoolStrengths, setSchoolStrengths] = useState({});
+
+  useEffect(() => {
+    fetch("/api/school-strengths")
+      .then((res) => res.json())
+      .then((data) => setSchoolStrengths(data));
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
@@ -41,7 +47,7 @@ export default function ComparePage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {selectedSchools.map((school, index) => {
-            const data = findSchoolData(school.school);
+            const data = findSchoolData(school.school, schoolStrengths);
             const [photoIndex, setPhotoIndex] = useState(0);
 
             if (!data) {
