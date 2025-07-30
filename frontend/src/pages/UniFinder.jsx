@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Heart, MapPin, DollarSign, School, Search } from "lucide-react"
-import Navbar from "../components/navbar"
+import Navbar from "../components/Navbar"
 import Footer from "../components/Footer"
 
 function UniFinder() {
@@ -171,8 +171,13 @@ function UniFinder() {
     })
 
     const data = await response.json()
+    
+    // Store results and user data for feedback collection
     localStorage.setItem("results", JSON.stringify(data.results || []))
     localStorage.setItem("message", data.message || "")
+    localStorage.setItem("userAnswers", JSON.stringify(answers))
+    localStorage.setItem("userEmbeddings", JSON.stringify(data.user_embeddings || {}))
+    
     navigate("/results")
   }
 

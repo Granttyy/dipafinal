@@ -9,7 +9,10 @@ import {
   ListChecks,
   Link as LinkIcon,
   Building2,
-  Ruler
+  Ruler,
+  ThumbsUp,
+  ThumbsDown,
+  X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -53,6 +56,8 @@ function ResultsSection({ results, message }) {
     localStorage.getItem("manualCity") || ""
   );
   const [schoolStrengths, setSchoolStrengths] = useState({});
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -93,8 +98,17 @@ function ResultsSection({ results, message }) {
 
   useEffect(() => {
     fetch("/api/school-strengths")
-      .then((res) => res.json())
-      .then((data) => setSchoolStrengths(data));
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => setSchoolStrengths(data))
+      .catch((error) => {
+        console.error("Error fetching school strengths:", error);
+        setSchoolStrengths({});
+      });
   }, []);
 
   const displayedCity = manualCity || userCity;
@@ -119,6 +133,48 @@ function ResultsSection({ results, message }) {
       );
     } else {
       setSelectedSchools((prev) => [...prev, item]);
+    }
+  };
+
+  const handleFeedback = async (feedbackType) => {
+    if (feedbackSubmitted) return;
+    
+    setFeedbackLoading(true);
+    try {
+      // Get stored data from localStorage
+      const storedResults = JSON.parse(localStorage.getItem("results") || "[]");
+      const userAnswers = JSON.parse(localStorage.getItem("userAnswers") || "{}");
+      const userEmbeddings = JSON.parse(localStorage.getItem("userEmbeddings") || "{}");
+      
+      const feedbackData = {
+        session_id: Date.now().toString(), // Simple session ID
+        user_answers: userAnswers,
+        user_embeddings: userEmbeddings,
+        recommended_programs: storedResults,
+        feedback_type: feedbackType,
+        feedback_details: `User provided ${feedbackType} feedback for recommendations`,
+        selected_program: null, // Could be enhanced to track which program user selected
+        timestamp: new Date().toISOString()
+      };
+
+      const response = await fetch("http://127.0.0.1:8000/feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(feedbackData),
+      });
+
+      if (response.ok) {
+        setFeedbackSubmitted(true);
+        console.log("Feedback submitted successfully");
+      } else {
+        console.error("Failed to submit feedback");
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+    } finally {
+      setFeedbackLoading(false);
     }
   };
 
@@ -323,6 +379,54 @@ function ResultsSection({ results, message }) {
           </div>
         );
       })}
+
+      {/* Feedback Section */}
+      {!feedbackSubmitted && (
+        <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
+          <h3 className="text-lg font-semibold text-blue-800 mb-4 text-center">
+            How helpful were these recommendations?
+          </h3>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={() => handleFeedback("positive")}
+              disabled={feedbackLoading}
+              className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50"
+            >
+              <ThumbsUp className="w-5 h-5" />
+              👍 Helpful
+            </button>
+            <button
+              onClick={() => handleFeedback("negative")}
+              disabled={feedbackLoading}
+              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50"
+            >
+              <ThumbsDown className="w-5 h-5" />
+              👎 Not Helpful
+            </button>
+            <button
+              onClick={() => handleFeedback("not_relevant")}
+              disabled={feedbackLoading}
+              className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50"
+            >
+              <X className="w-5 h-5" />
+              ❌ Not Relevant
+            </button>
+          </div>
+          {feedbackLoading && (
+            <p className="text-center text-gray-600 mt-3 text-sm">
+              Submitting feedback...
+            </p>
+          )}
+        </div>
+      )}
+
+      {feedbackSubmitted && (
+        <div className="mt-8 p-4 bg-green-100 border border-green-300 rounded-xl text-center">
+          <p className="text-green-800 font-medium">
+            Thank you for your feedback! It helps us improve our recommendations. 🎉
+          </p>
+        </div>
+      )}
 
       {selectedSchools.length >= 2 && (
         <div className="text-center mt-6">

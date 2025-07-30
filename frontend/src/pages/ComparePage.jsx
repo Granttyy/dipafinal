@@ -30,8 +30,24 @@ export default function ComparePage() {
 
   useEffect(() => {
     fetch("/api/school-strengths")
-      .then((res) => res.json())
-      .then((data) => setSchoolStrengths(data));
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        // If the backend returns { data: { ... } }, use data.data; else use data
+        if (data && data.data) {
+          setSchoolStrengths(data.data);
+        } else {
+          setSchoolStrengths(data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching school strengths:", error);
+        setSchoolStrengths({});
+      });
   }, []);
 
   return (
@@ -48,7 +64,6 @@ export default function ComparePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {selectedSchools.map((school, index) => {
             const data = findSchoolData(school.school, schoolStrengths);
-            const [photoIndex, setPhotoIndex] = useState(0);
 
             if (!data) {
               return (
@@ -145,42 +160,26 @@ export default function ComparePage() {
                     </ul>
                   </div>
 
-                  <div className="mt-4">
-                    <p className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
-                      <ImageIcon className="text-orange-500 w-4 h-4" />
-                      Virtual Tour / Photos:
-                    </p>
-                    <div className="relative">
-                      <img
-                        src={`/images/${virtual_tour_photos[photoIndex]}`}
-                        alt={`Photo ${photoIndex + 1}`}
-                        className="w-full h-48 object-cover rounded-xl border"
-                      />
-                      {virtual_tour_photos.length > 1 && (
-                        <div className="flex justify-between mt-2 text-sm">
-                          <button
-                            onClick={() =>
-                              setPhotoIndex(
-                                (photoIndex - 1 + virtual_tour_photos.length) %
-                                  virtual_tour_photos.length
-                              )
-                            }
-                            className="text-blue-600 hover:underline"
-                          >
-                            ◀ Prev
-                          </button>
-                          <button
-                            onClick={() =>
-                              setPhotoIndex((photoIndex + 1) % virtual_tour_photos.length)
-                            }
-                            className="text-blue-600 hover:underline"
-                          >
-                            Next ▶
-                          </button>
-                        </div>
-                      )}
+                  {virtual_tour_photos && virtual_tour_photos.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
+                        <ImageIcon className="text-orange-500 w-4 h-4" />
+                        Virtual Tour / Photos:
+                      </p>
+                      <div className="relative">
+                        <img
+                          src={`/images/${virtual_tour_photos[0]}`}
+                          alt="School photo"
+                          className="w-full h-48 object-cover rounded-xl border"
+                        />
+                        {virtual_tour_photos.length > 1 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {virtual_tour_photos.length} photos available
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             );
