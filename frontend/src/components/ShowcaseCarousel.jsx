@@ -56,10 +56,10 @@ export default function ShowcaseCarousel() {
   };
 
   useEffect(() => {
-    axios
-      .get("http://localhost:8000/programs/showcase")
-      .then((res) => setPrograms(res.data))
-      .catch((err) => console.error("Failed to fetch showcase:", err));
+  axios
+    .get("http://localhost:8000/api/programs/showcase")
+    .then((res) => setPrograms(res.data))
+    .catch((err) => console.error("Failed to fetch showcase:", err));
   }, []);
 
   useEffect(() => {

@@ -5,7 +5,6 @@ This script simulates user feedback to test the model learning functionality.
 """
 
 import requests
-import json
 import time
 from datetime import datetime
 
@@ -43,10 +42,10 @@ def simulate_user_search():
         if response.status_code == 200:
             return response.json()
         else:
-            print(f"\u274c Search failed: {response.status_code}")
+            print(f"❌ Search failed: {response.status_code}")
             return None
     except Exception as e:
-        print(f"\u274c Error during search: {e}")
+        print(f"❌ Error during search: {e}")
         return None
 
 def submit_feedback(search_result, feedback_type):
@@ -55,26 +54,26 @@ def submit_feedback(search_result, feedback_type):
         return False
 
     feedback_data = {
-        "session_id": f"test_session_{int(time.time())}",
+        "session_id": "test_session_simulated",
         "user_answers": search_result.get("user_embeddings", {}),
         "user_embeddings": search_result.get("user_embeddings", {}),
         "recommended_programs": search_result.get("results", []),
         "feedback_type": feedback_type,
         "feedback_details": f"Test feedback: {feedback_type}",
-        "selected_program": None,
+        "selected_program": search_result.get("results", [{}])[0].get("program", "Unknown"),
         "timestamp": datetime.now().isoformat()
     }
 
     try:
         response = requests.post(f"{BASE_URL}/feedback", json=feedback_data)
         if response.status_code == 200:
-            print(f"\u2705 Feedback submitted: {feedback_type}")
+            print(f"✅ Feedback submitted: {feedback_type}")
             return True
         else:
-            print(f"\u274c Feedback submission failed: {response.status_code}")
+            print(f"❌ Feedback submission failed: {response.status_code}")
             return False
     except Exception as e:
-        print(f"\u274c Error submitting feedback: {e}")
+        print(f"❌ Error submitting feedback: {e}")
         return False
 
 def get_feedback_stats():
@@ -84,10 +83,10 @@ def get_feedback_stats():
         if response.status_code == 200:
             return response.json()
         else:
-            print(f"\u274c Failed to get stats: {response.status_code}")
+            print(f"❌ Failed to get stats: {response.status_code}")
             return None
     except Exception as e:
-        print(f"\u274c Error getting stats: {e}")
+        print(f"❌ Error getting stats: {e}")
         return None
 
 def trigger_model_retraining():
@@ -95,24 +94,24 @@ def trigger_model_retraining():
     try:
         response = requests.post(f"{BASE_URL}/model/retrain", json={
             "force_retrain": False,
-            "min_feedback_count": 10  # Lower threshold for testing
+            "min_feedback_count": 10
         })
         if response.status_code == 200:
             return response.json()
         else:
-            print(f"\u274c Retraining failed: {response.status_code}")
+            print(f"❌ Retraining failed: {response.status_code}")
             return None
     except Exception as e:
-        print(f"\u274c Error during retraining: {e}")
+        print(f"❌ Error during retraining: {e}")
         return None
 
 def main():
     """Main test function."""
-    print("\U0001F9EA Testing Feedback Learning System")
+    print("🧪 Testing Feedback Learning System")
     print("=" * 50)
 
     # Step 1: Get initial stats
-    print("\n\U0001F4CA Initial Feedback Statistics:")
+    print("\n📊 Initial Feedback Statistics:")
     initial_stats = get_feedback_stats()
     if initial_stats:
         print(f"   Total feedback: {initial_stats.get('total_feedback', 0)}")
@@ -120,20 +119,17 @@ def main():
 
     # Step 2: Simulate multiple user searches and feedback
     feedback_types = ["positive", "negative", "not_relevant"]
-
-    print(f"\n\uD83D\uDD04 Simulating {len(feedback_types) * 3} user interactions...")
+    print(f"\n🔄 Simulating {len(feedback_types) * 3} user interactions...")
 
     for i in range(3):  # 3 rounds of feedback
         for feedback_type in feedback_types:
-            # Simulate search
             search_result = simulate_user_search()
             if search_result:
-                # Submit feedback
                 submit_feedback(search_result, feedback_type)
-                time.sleep(0.5)  # Small delay between requests
+                time.sleep(0.5)
 
     # Step 3: Get updated stats
-    print("\n\U0001F4CA Updated Feedback Statistics:")
+    print("\n📊 Updated Feedback Statistics:")
     updated_stats = get_feedback_stats()
     if updated_stats:
         print(f"   Total feedback: {updated_stats.get('total_feedback', 0)}")
@@ -145,7 +141,7 @@ def main():
                 print(f"     {item['_id']}: {item['count']}")
 
     # Step 4: Trigger model retraining
-    print("\n\U0001F3AF Triggering Model Retraining:")
+    print("\n🎯 Triggering Model Retraining:")
     retrain_result = trigger_model_retraining()
     if retrain_result:
         print(f"   Success: {retrain_result.get('success', False)}")
@@ -157,7 +153,7 @@ def main():
         if retrain_result.get('improvement_score'):
             print(f"   Improvement score: {retrain_result['improvement_score']:.3f}")
 
-    print("\n\u2705 Test completed!")
+    print("\n✅ Test completed!")
 
 if __name__ == "__main__":
     main()

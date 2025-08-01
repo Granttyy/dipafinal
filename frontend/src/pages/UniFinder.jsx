@@ -155,16 +155,18 @@ function UniFinder() {
 
   const search = async () => {
     const payload = {
-      answers,
-      school_type: schoolType,
-      locations,
-    }
+    answers,
+    school_type: schoolType || "any",                     
+    locations: Array.isArray(locations) ? locations : [], 
+    max_budget: null,
+    };
+
 
     if (schoolType === "private") {
       payload.max_budget = maxBudget
     }
 
-    const response = await fetch("http://127.0.0.1:8000/search", {
+    const response = await fetch("http://127.0.0.1:8000/api/recommendation/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
