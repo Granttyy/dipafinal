@@ -1,6 +1,17 @@
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
-import { GraduationCap, MapPin, DollarSign, FileText, BookOpen, ListChecks, LinkIcon, Building2, Ruler, ThumbsUp, ThumbsDown, X } from 'lucide-react';
+import {
+  MapPin,
+  DollarSign,
+  FileText,
+  BookOpen,
+  LinkIcon,
+  Building2,
+  Ruler,
+  ThumbsUp,
+  ThumbsDown,
+  X,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // --- Data Definitions ---
@@ -31,7 +42,12 @@ const cityCoordinates = {
 };
 
 function formatValue(val, fallback = "N/A") {
-  if (val === null || val === undefined || val === "" || (Array.isArray(val) && val.length === 0)) {
+  if (
+    val === null ||
+    val === undefined ||
+    val === "" ||
+    (Array.isArray(val) && val.length === 0)
+  ) {
     return fallback;
   }
   return val;
@@ -56,9 +72,7 @@ function ResultsSection({ results, message }) {
   const [selectedSchools, setSelectedSchools] = useState([]);
   const [userLocation, setUserLocation] = useState({ lat: null, lng: null });
   const [userCity, setUserCity] = useState(null);
-  const [manualCity, setManualCity] = useState(
-    localStorage.getItem("manualCity") || ""
-  );
+  const [manualCity, setManualCity] = useState(localStorage.getItem("manualCity") || "");
   const [schoolStrengths, setSchoolStrengths] = useState({});
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
@@ -81,9 +95,7 @@ function ResultsSection({ results, message }) {
                 address.city || address.town || address.village || address.county;
               setUserCity(city);
             })
-            .catch((error) =>
-              console.error("Reverse geocoding error:", error)
-            );
+            .catch((error) => console.error("Reverse geocoding error:", error));
         },
         (error) => {
           console.error("Geolocation error:", error.message);
@@ -101,10 +113,13 @@ function ResultsSection({ results, message }) {
         }
         return res.json();
       })
-      .then((data) => setSchoolStrengths(data))
+      .then((data) => {
+        console.log("DEBUG: school strengths fetched from backend:", data); // Debug log
+        setSchoolStrengths(data);
+      })
       .catch((error) => {
         console.error("Error fetching school strengths:", error);
-        setSchoolStrengths({});
+        setSchoolStrengths([]);
       });
   }, []);
 
@@ -171,9 +186,7 @@ function ResultsSection({ results, message }) {
 
   if (!results || results.length === 0) {
     return (
-      <p className="text-center text-gray-500">
-        {message || "No results found."}
-      </p>
+      <p className="text-center text-gray-500">{message || "No results found."}</p>
     );
   }
 
@@ -214,21 +227,27 @@ function ResultsSection({ results, message }) {
         );
 
         // Extract school information from the nested school object
-        const schoolName = item.school?.name || 'Unknown School';
-        const schoolType = item.school?.type || 'N/A';
-        const schoolLocation = item.school?.location || 'N/A';
-        const schoolTuition = item.school?.tuition || 'Free tuition under government-supported program';
+        const schoolName = item.school || "Unknown School";
+        const schoolLocation = item.location || "N/A";
+        const schoolTuition =
+          item.tuition || "Free tuition under government-supported program";
+        const schoolType = item.school_type || "N/A";
 
         // Get additional school info from schoolStrengths
         const strengthsInfo = schoolStrengths[schoolName] || {};
-        
+
         let referenceLocation = userLocation;
         if (manualCity && cityCoordinates[manualCity]) {
           referenceLocation = cityCoordinates[manualCity];
         }
 
         let distanceText = null;
-        if (referenceLocation.lat && referenceLocation.lng && strengthsInfo.coords?.lat && strengthsInfo.coords?.lng) {
+        if (
+          referenceLocation.lat &&
+          referenceLocation.lng &&
+          strengthsInfo.coords?.lat &&
+          strengthsInfo.coords?.lng
+        ) {
           const distance = getDistanceFromLatLonInKm(
             referenceLocation.lat,
             referenceLocation.lng,
@@ -305,10 +324,11 @@ function ResultsSection({ results, message }) {
                     </p>
                     <p className="flex items-center gap-2">
                       <DollarSign className="w-4 h-4 text-green-600" />
-                      <strong>Tuition:</strong> {schoolTuition === null ? 'Free tuition under government-supported program' : schoolTuition}
+                      <strong>Tuition:</strong>{" "}
+                      {formatValue(item.school?.tuition)}
                     </p>
                   </div>
-                  
+
                   <div className="space-y-2">
                     {strengthsInfo.category && (
                       <p className="flex items-center gap-2">
@@ -319,13 +339,15 @@ function ResultsSection({ results, message }) {
                     {strengthsInfo.admission_requirements && (
                       <p className="flex items-center gap-2">
                         <FileText className="w-4 h-4 text-yellow-600" />
-                        <strong>Admission Requirements:</strong> {formatValue(strengthsInfo.admission_requirements)}
+                        <strong>Admission Requirements:</strong>{" "}
+                        {formatValue(strengthsInfo.admission_requirements)}
                       </p>
                     )}
                     {strengthsInfo.grade_requirements && (
                       <p className="flex items-center gap-2">
                         <BookOpen className="w-4 h-4 text-indigo-500" />
-                        <strong>Grade Requirements:</strong> {formatValue(strengthsInfo.grade_requirements)}
+                        <strong>Grade Requirements:</strong>{" "}
+                        {formatValue(strengthsInfo.grade_requirements)}
                       </p>
                     )}
                   </div>
@@ -350,9 +372,13 @@ function ResultsSection({ results, message }) {
                 {strengthsInfo.maps_query && (
                   <div className="mt-4 space-y-4">
                     <div className="bg-gray-100 p-3 rounded-lg">
-                      <p className="text-sm font-medium text-gray-700 mb-2">School Location</p>
+                      <p className="text-sm font-medium text-gray-700 mb-2">
+                        School Location
+                      </p>
                       <iframe
-                        src={`https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodeURIComponent(schoolLocation)}`}
+                        src={`https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodeURIComponent(
+                          schoolLocation
+                        )}`}
                         width="100%"
                         height="250"
                         className="rounded-lg border"
@@ -368,7 +394,8 @@ function ResultsSection({ results, message }) {
                       </div>
                     ) : (
                       <div className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-lg">
-                        📍 Distance calculation not available. Enable location services to see how far this school is from you.
+                        📍 Distance calculation not available. Enable location
+                        services to see how far this school is from you.
                       </div>
                     )}
                   </div>
@@ -430,7 +457,10 @@ function ResultsSection({ results, message }) {
         <div className="text-center mt-6">
           <button
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-xl shadow transition-colors"
-            onClick={() => navigate("/compare", { state: { selectedSchools } })}
+            onClick={() => {
+              console.log("DEBUG: selectedSchools sent to Compare:", selectedSchools);
+              navigate("/compare", { state: { selectedSchools } });
+            }}
           >
             Compare Now ({selectedSchools.length})
           </button>

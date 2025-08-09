@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Heart, MapPin, DollarSign, School, Search } from "lucide-react"
-import Navbar from "../components/Navbar"
+import Navbar from "../components/navbar"
 import Footer from "../components/Footer"
 
 function UniFinder() {
@@ -9,30 +9,44 @@ function UniFinder() {
   const navigate = useNavigate()
 
   const [answers, setAnswers] = useState({
-    subjects: [],
-    fields: [],
-    activities: [],
-    skills: [],
-    tools: [],
-    workStyle: [],
-    impact: [],
-    custom: {
-      subjects: "", fields: "", activities: "", skills: "", tools: "", workStyle: "", impact: "",
-    }
-  })
+  academics: [],
+  fields: [],
+  activities: [],
+  goals: [],
+  environment: [],
+  custom: {
+    academics: "", fields: "", activities: "", goals: "", environment: "",
+  }
+})
+
 
   const [schoolType, setSchoolType] = useState("any")
   const [locations, setLocations] = useState([])
   const [maxBudget, setMaxBudget] = useState(50000)
 
-  const handleCheckboxChange = (category, value) => {
-    setAnswers(prev => {
-      const updated = prev[category].includes(value)
-        ? prev[category].filter(item => item !== value)
-        : [...prev[category], value]
-      return { ...prev, [category]: updated }
-    })
-  }
+  const handleCheckboxChange = (questionKey, choice) => {
+  setAnswers(prevAnswers => {
+    const selected = prevAnswers[questionKey];
+    const isSelected = selected.includes(choice);
+
+    if (isSelected) {
+      // Remove the choice if already selected
+      return {
+        ...prevAnswers,
+        [questionKey]: selected.filter(item => item !== choice)
+      };
+    } else {
+      // Limit selection to 3
+      if (selected.length >= 3) return prevAnswers;
+
+      return {
+        ...prevAnswers,
+        [questionKey]: [...selected, choice]
+      };
+    }
+  });
+};
+
 
   const handleCustomChange = (category, value) => {
     setAnswers(prev => ({
@@ -46,142 +60,110 @@ function UniFinder() {
 
  const questions = [
   {
-    key: "subjects",
-    title: "What subjects do you enjoy the most?",
+    key: "academics",
+    title: "What subjects or academic areas do you enjoy the most?",
     choices: [
       "Math",
       "Science",
       "English",
-      "History",
-      "PE",
-      "Arts",
-      "Foreign Languages",
-      "Economics",
-      "Information and Communication Technology (ICT)"
+      "History or Social Studies",
+      "PE or Sports",
+      "Arts or Design",
+      "Technology or ICT",
+      "Business or Economics",
+      "Foreign Languages"
     ]
   },
   {
     key: "fields",
-    title: "What topics or fields are you most interested in?",
+    title: "Which fields or careers are you most drawn to?",
     choices: [
-      "Technology",
-      "Arts",
-      "Healthcare",
-      "Engineering",
-      "Law",
-      "Education",
-      "Business",
-      "Social Sciences",
-      "Environmental Science"
+      "Engineering & Architecture",
+      "Business & Entrepreneurship",
+      "Arts & Media",
+      "Healthcare & Medicine",
+      "Education & Teaching",
+      "Social Work & Community Service",
+      "Law & Government",
+      "Science & Research",
+      "Technology & Computing"
     ]
   },
   {
     key: "activities",
-    title: "What kind of activities do you enjoy?",
+    title: "What kinds of tasks or activities do you enjoy doing?",
     choices: [
-      "Designing",
-      "Solving problems",
-      "Building things",
-      "Writing",
-      "Researching",
-      "Presenting",
-      "Organizing events",
-      "Helping others",
-      "Experimenting"
+      "Designing or creating",
+      "Solving puzzles or problems",
+      "Writing or storytelling",
+      "Building or fixing things",
+      "Helping or mentoring others",
+      "Researching or analyzing",
+      "Speaking or presenting",
+      "Working in teams or leading",
+      "Hands-on or field work"
     ]
   },
   {
-    key: "skills",
-    title: "What skills do you have or want to improve?",
+    key: "goals",
+    title: "What goals matter most to you in a future career?",
     choices: [
-      "Critical thinking",
-      "Creativity",
-      "Communication",
-      "Coding",
-      "Leadership",
-      "Problem-solving",
-      "Analytical thinking",
-      "Public speaking",
-      "Collaboration"
-    ]
-  },
-  {
-    key: "tools",
-    title: "Which tools or environments are you comfortable working with?",
-    choices: [
-      "Computers",
-      "Books",
-      "Lab equipment",
-      "Art materials",
-      "Multimedia tools",
-      "Spreadsheets",
-      "Software applications",
-      "Cameras",
-      "Technical instruments"
-    ]
-  },
-  {
-    key: "workStyle",
-    title: "Do you prefer working alone or with others?",
-    choices: [
-      "Solo tasks",
-      "Teamwork",
-      "Public speaking",
-      "Leadership",
-      "Mentoring",
-      "Collaborative projects",
-      "Field work",
-      "Online/remote tasks",
-      "Hands-on work"
-    ]
-  },
-  {
-    key: "impact",
-    title: "What kind of impact do you want to make in the world?",
-    choices: [
-      "Helping people",
-      "Innovating technology",
+      "Innovating or inventing things",
+      "Making a positive impact on people’s lives",
+      "Educating and spreading knowledge",
+      "Advancing technology or science",
       "Protecting the environment",
-      "Educating others",
-      "Promoting justice",
       "Supporting communities",
-      "Improving healthcare",
-      "Advancing science",
-      "Driving economic growth"
+      "Driving economic or business growth",
+      "Promoting justice or fairness",
+      "Working in a stable, practical career"
+    ]
+  },
+  {
+    key: "environment",
+    title: "What environment or setting do you see yourself working in?",
+    choices: [
+      "Office or corporate setting",
+      "Classroom or academic setting",
+      "Hospitals or clinics",
+      "Outdoor or field work",
+      "Workshop or laboratory",
+      "Studio or creative space",
+      "Tech-driven/digital environments",
+      "Legal or government institutions",
+      "Remote or freelance setup"
     ]
   }
 ];
 
 
   const search = async () => {
-    const payload = {
+  const payload = {
     answers,
-    school_type: schoolType || "any",                     
-    locations: Array.isArray(locations) ? locations : [], 
-    max_budget: null,
-    };
-
-
-    if (schoolType === "private") {
-      payload.max_budget = maxBudget
-    }
-
-    const response = await fetch("http://127.0.0.1:8000/api/recommendation/search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    })
-
-    const data = await response.json()
-    
-    // Store results and user data for feedback collection
-    localStorage.setItem("results", JSON.stringify(data.results || []))
-    localStorage.setItem("message", data.message || "")
-    localStorage.setItem("userAnswers", JSON.stringify(answers))
-    localStorage.setItem("userEmbeddings", JSON.stringify(data.user_embeddings || {}))
-    
-    navigate("/results")
+    school_type: schoolType,
+    locations,
   }
+
+  if (schoolType === "private") {
+    payload.max_budget = maxBudget
+  }
+
+  const response = await fetch("http://127.0.0.1:8000/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+
+  const data = await response.json()
+
+  localStorage.setItem("results", JSON.stringify(data.results || []))
+  localStorage.setItem("message", data.message || "")
+
+  // ✅ Add this line:
+  localStorage.setItem("type", data.type || "exact")
+
+  navigate("/results")
+}
 
   const ProgressBar = () => {
   const steps = [1, 2, 3]

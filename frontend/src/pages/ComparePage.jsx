@@ -8,12 +8,15 @@ import {
   Bus,
   GraduationCap,
   Globe,
-  Image as ImageIcon
+  Image as ImageIcon,
 } from "lucide-react";
 
 function findSchoolData(schoolName, schoolStrengths) {
+  if (!schoolStrengths || Object.keys(schoolStrengths).length === 0) return null;
+
   const normalizedName = schoolName.toLowerCase();
 
+  // schoolStrengths is expected to be an object keyed by school names
   for (const key in schoolStrengths) {
     if (normalizedName.includes(key.toLowerCase())) {
       return schoolStrengths[key];
@@ -26,10 +29,10 @@ function findSchoolData(schoolName, schoolStrengths) {
 export default function ComparePage() {
   const location = useLocation();
   const selectedSchools = location.state?.selectedSchools || [];
-  const [schoolStrengths, setSchoolStrengths] = useState({});
+  const [schoolStrengths, setSchoolStrengths] = useState({}); // use object, not array
 
   useEffect(() => {
-    fetch("/api/school-strengths")
+    fetch("http://127.0.0.1:8000/api/school-strengths")
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
@@ -37,8 +40,13 @@ export default function ComparePage() {
         return res.json();
       })
       .then((data) => {
-        // If the backend returns { data: { ... } }, use data.data; else use data
-        if (data && data.data) {
+        // Assuming backend returns an array with 1 document containing all schools
+        if (Array.isArray(data) && data.length > 0) {
+          const doc = data[0];
+          // Remove _id before setting state
+          const { _id, ...schoolsData } = doc;
+          setSchoolStrengths(schoolsData);
+        } else if (data && data.data) {
           setSchoolStrengths(data.data);
         } else {
           setSchoolStrengths(data);
@@ -69,15 +77,15 @@ export default function ComparePage() {
               return (
                 <div
                   key={index}
-                  className="bg-white dark:bg-white rounded-2xl border p-6 shadow-md space-y-4"
+                  className="bg-white rounded-2xl border p-6 shadow-md space-y-4"
                 >
-                  <h2 className="text-xl font-bold text-blue-800">
-                    {school.school}
-                  </h2>
+                  <h2 className="text-xl font-bold text-blue-800">{school.school}</h2>
                   <p className="text-sm text-gray-700">
                     <strong>Program:</strong> {school.program}
                   </p>
-                  <p className="text-sm text-gray-500">No data available for this school.</p>
+                  <p className="text-sm text-gray-500">
+                    No data available for this school.
+                  </p>
                 </div>
               );
             }
@@ -91,13 +99,13 @@ export default function ComparePage() {
               dorm_apartment,
               transport_access,
               scholarships_offered,
-              virtual_tour_photos
+              virtual_tour_photos,
             } = data;
 
             return (
               <div
                 key={index}
-                className="bg-white dark:bg-white rounded-2xl border p-6 shadow-md space-y-4"
+                className="bg-white rounded-2xl border p-6 shadow-md space-y-4"
               >
                 <div className="flex items-center space-x-3">
                   <img
@@ -111,17 +119,23 @@ export default function ComparePage() {
                 <div className="space-y-2 text-sm text-gray-800">
                   <div className="flex items-center gap-2">
                     <GraduationCap className="text-purple-600 w-4 h-4" />
-                    <span><strong>Program:</strong> {school.program}</span>
+                    <span>
+                      <strong>Program:</strong> {school.program}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <MapPin className="text-red-500 w-4 h-4" />
-                    <span><strong>Address:</strong> {address}</span>
+                    <span>
+                      <strong>Address:</strong> {address}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Star className="text-yellow-500 w-4 h-4" />
-                    <span><strong>Known For:</strong> {what_theyre_known_for}</span>
+                    <span>
+                      <strong>Known For:</strong> {what_theyre_known_for}
+                    </span>
                   </div>
 
                   <div className="flex items-start gap-2">
@@ -135,18 +149,24 @@ export default function ComparePage() {
                   <div className="flex items-center gap-2">
                     <Globe className="text-blue-600 w-4 h-4" />
                     <span>
-                      <strong>Unirank:</strong> #{unirank.country_rank} PH / #{unirank.world_rank} Global
+                      <strong>Unirank:</strong>{" "}
+                      {unirank?.country_rank ? `#${unirank.country_rank} PH / ` : ""}
+                      {unirank?.world_rank ? `#${unirank.world_rank} Global` : "N/A"}
                     </span>
                   </div>
 
                   <div className="flex items-start gap-2">
                     <Building2 className="text-pink-600 w-4 h-4 mt-0.5" />
-                    <span><strong>Dorm / Apartment:</strong> {dorm_apartment}</span>
+                    <span>
+                      <strong>Dorm / Apartment:</strong> {dorm_apartment}
+                    </span>
                   </div>
 
                   <div className="flex items-start gap-2">
                     <Bus className="text-indigo-600 w-4 h-4 mt-0.5" />
-                    <span><strong>Transport Access:</strong> {transport_access}</span>
+                    <span>
+                      <strong>Transport Access:</strong> {transport_access}
+                    </span>
                   </div>
 
                   <div className="mt-3">

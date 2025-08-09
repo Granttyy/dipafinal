@@ -1,54 +1,54 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict
 
 from core.recommendation_engine import recommend_programs
 from database.mongo import db
 
 router = APIRouter()
 
-# ✅ Structured user answers based on frontend input
 class UserAnswers(BaseModel):
-    subjects: List[str]
-    fields: List[str]
-    activities: List[str]
-    skills: List[str]
-    tools: List[str]
-    workStyle: List[str]
-    impact: List[str]
+    academics: List[str] = Field(default_factory=list)
+    fields: List[str] = Field(default_factory=list)
+    activities: List[str] = Field(default_factory=list)
+    goals: List[str] = Field(default_factory=list)
+    environment: List[str] = Field(default_factory=list)
+    custom: Dict[str, str] = Field(default_factory=dict)
 
-# ✅ Complete recommendation request body
 class RecommendationRequest(BaseModel):
-    answers: UserAnswers
+    answers: UserAnswers  # required, no default
     school_type: Optional[str] = "any"
-    locations: Optional[List[str]] = []
+    locations: List[str] = Field(default_factory=list)
     max_budget: Optional[int] = None
 
-# ✅ Converts user's selected options into semantic input
 def format_user_input(answers: UserAnswers) -> str:
-    return (
-        f"Subjects I enjoy: {', '.join(answers.subjects)}. "
-        f"I'm interested in: {', '.join(answers.fields)}. "
-        f"Activities I enjoy: {', '.join(answers.activities)}. "
-        f"Skills I want to improve: {', '.join(answers.skills)}. "
-        f"Tools I like using: {', '.join(answers.tools)}. "
-        f"Work style I prefer: {', '.join(answers.workStyle)}. "
-        f"Impact I want to make: {', '.join(answers.impact)}."
+    def join_list(items: List[str]) -> str:
+        return ', '.join(items) if items else "None"
+
+    input_text = (
+        f"Subjects I enjoy: {join_list(answers.academics)}. "
+        f"Fields I'm drawn to: {join_list(answers.fields)}. "
+        f"Activities I enjoy: {join_list(answers.activities)}. "
+        f"Career goals: {join_list(answers.goals)}. "
+        f"Preferred work environment: {join_list(answers.environment)}."
     )
 
-# ✅ Main recommendation route
+    if answers.custom:
+        for key, val in answers.custom.items():
+            if val and val.strip():
+                input_text += f" Custom {key}: {val.strip()}."
+
+    return input_text
+
 @router.post("/recommend")
-def recommend_handler(request: RecommendationRequest):
+async def recommend_handler(request: RecommendationRequest):
     try:
-        # Step 1: Convert answers to semantic query
         user_input = format_user_input(request.answers)
 
-        # Step 2: Load vectorized programs from MongoDB
         programs = list(db["program_vectors"].find())
         if not programs:
             return {"results": [], "message": "⚠️ No programs found in database."}
 
-        # Step 3: Get top matches from the recommendation engine
         top_matches = recommend_programs(
             user_input=user_input,
             school_data=programs,
@@ -57,7 +57,6 @@ def recommend_handler(request: RecommendationRequest):
             max_budget=request.max_budget,
         )
 
-        # Step 4: Format response
         formatted_results = [
             {
                 "program_id": str(prog.get("_id", "")),
@@ -83,7 +82,6 @@ def recommend_handler(request: RecommendationRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"🚨 Recommendation failed: {str(e)}")
 
-# ✅ Alias for /search if frontend uses old endpoint
 @router.post("/search")
-def search_alias_handler(request: RecommendationRequest):
-    return recommend_handler(request)
+async def search_alias_handler(request: RecommendationRequest):
+    return await recommend_handler(request)
