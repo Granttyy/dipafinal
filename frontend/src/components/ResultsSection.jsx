@@ -1,17 +1,6 @@
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
-import {
-  MapPin,
-  DollarSign,
-  FileText,
-  BookOpen,
-  LinkIcon,
-  Building2,
-  Ruler,
-  ThumbsUp,
-  ThumbsDown,
-  X,
-} from "lucide-react";
+import { GraduationCap, MapPin, DollarSign, FileText, BookOpen, ListChecks, LinkIcon, Building2, Ruler, ThumbsUp, ThumbsDown, X } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 
 // --- Data Definitions ---
@@ -72,7 +61,9 @@ function ResultsSection({ results, message }) {
   const [selectedSchools, setSelectedSchools] = useState([]);
   const [userLocation, setUserLocation] = useState({ lat: null, lng: null });
   const [userCity, setUserCity] = useState(null);
-  const [manualCity, setManualCity] = useState(localStorage.getItem("manualCity") || "");
+  const [manualCity, setManualCity] = useState(
+    typeof window !== "undefined" ? localStorage.getItem("manualCity") || "" : ""
+  );
   const [schoolStrengths, setSchoolStrengths] = useState({});
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
@@ -90,10 +81,10 @@ function ResultsSection({ results, message }) {
           )
             .then((res) => res.json())
             .then((data) => {
-              const address = data.address;
+              const address = data.address || {};
               const city =
                 address.city || address.town || address.village || address.county;
-              setUserCity(city);
+              setUserCity(city || null);
             })
             .catch((error) => console.error("Reverse geocoding error:", error));
         },
@@ -114,17 +105,16 @@ function ResultsSection({ results, message }) {
         return res.json();
       })
       .then((data) => {
-        console.log("DEBUG: school strengths fetched from backend:", data); // Debug log
-        setSchoolStrengths(data);
+        setSchoolStrengths(data || {});
       })
       .catch((error) => {
         console.error("Error fetching school strengths:", error);
-        setSchoolStrengths([]);
+        setSchoolStrengths({});
       });
   }, []);
 
   // --- Handlers & Render Logic ---
-  const displayedCity = manualCity || userCity;
+  const displayedCity = manualCity || userCity || "";
 
   const handleCityChange = (value) => {
     setManualCity(value);
@@ -135,7 +125,6 @@ function ResultsSection({ results, message }) {
     const isAlreadySelected = selectedSchools.some(
       (school) => school.program_id === item.program_id
     );
-
     if (isAlreadySelected) {
       setSelectedSchools((prev) =>
         prev.filter((school) => school.program_id !== item.program_id)
@@ -147,12 +136,13 @@ function ResultsSection({ results, message }) {
 
   const handleFeedback = async (feedbackType) => {
     if (feedbackSubmitted) return;
-
     setFeedbackLoading(true);
     try {
       const storedResults = JSON.parse(localStorage.getItem("results") || "[]");
       const userAnswers = JSON.parse(localStorage.getItem("userAnswers") || "{}");
-      const userEmbeddings = JSON.parse(localStorage.getItem("userEmbeddings") || "{}");
+      const userEmbeddings = JSON.parse(
+        localStorage.getItem("userEmbeddings") || "{}"
+      );
 
       const feedbackData = {
         session_id: Date.now().toString(),
@@ -192,16 +182,27 @@ function ResultsSection({ results, message }) {
 
   return (
     <div className="space-y-6">
-      {displayedCity && (
-        <div className="text-center text-sm text-gray-700">
-          📍 You're viewing from:{" "}
-          <span className="font-semibold">{displayedCity}</span>
-          <div className="mt-2">
-            <label className="text-gray-600 text-xs mr-2">Not accurate?</label>
+      <div className="rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-3">
+          <div className="text-sm text-gray-700">
+            {displayedCity ? (
+              <span>
+                {"📍 You're viewing from: "}
+                <span className="font-semibold">{displayedCity}</span>
+              </span>
+            ) : (
+              <span className="italic text-gray-500">
+                Location not detected yet
+              </span>
+            )}
+          </div>
+          <div className="md:ml-auto flex items-center gap-2">
+            <label className="text-gray-600 text-xs">Not accurate?</label>
             <select
               className="border rounded px-2 py-1 text-sm text-gray-700"
               value={manualCity}
               onChange={(e) => handleCityChange(e.target.value)}
+              aria-label="Select your city"
             >
               <option value="">Select your city</option>
               {knownCities.map((city) => (
@@ -212,7 +213,7 @@ function ResultsSection({ results, message }) {
             </select>
           </div>
         </div>
-      )}
+      </div>
 
       {message && (
         <p className="text-center text-yellow-600 font-medium text-sm mb-4">
@@ -226,73 +227,105 @@ function ResultsSection({ results, message }) {
           (school) => school.program_id === item.program_id
         );
 
-        // Extract school information from the nested school object
+        // Extract school information (fallbacks kept for display above)
         const schoolName = item.school || "Unknown School";
-        const schoolLocation = item.location || "N/A";
-        const schoolTuition =
-          item.tuition || "Free tuition under government-supported program";
-        const schoolType = item.school_type || "N/A";
+        const schoolType = item.school?.type || "N/A";
+        const schoolLocation = item.school?.location || "N/A";
 
-        // Get additional school info from schoolStrengths
+        // Strengths lookup (kept for distance coords fallback)
         const strengthsInfo = schoolStrengths[schoolName] || {};
 
+        // Compute reference location (manual city overrides user geolocation)
         let referenceLocation = userLocation;
         if (manualCity && cityCoordinates[manualCity]) {
           referenceLocation = cityCoordinates[manualCity];
         }
 
+        // Determine distance text (prefer per-item coords if present, else strengths coords)
+        const targetLat =
+          (item.coords && item.coords.lat) ||
+          (strengthsInfo.coords && strengthsInfo.coords.lat) ||
+          null;
+        const targetLng =
+          (item.coords && item.coords.lng) ||
+          (strengthsInfo.coords && strengthsInfo.coords.lng) ||
+          null;
+
         let distanceText = null;
         if (
-          referenceLocation.lat &&
-          referenceLocation.lng &&
-          strengthsInfo.coords?.lat &&
-          strengthsInfo.coords?.lng
+          referenceLocation.lat != null &&
+          referenceLocation.lng != null &&
+          targetLat != null &&
+          targetLng != null
         ) {
           const distance = getDistanceFromLatLonInKm(
             referenceLocation.lat,
             referenceLocation.lng,
-            strengthsInfo.coords.lat,
-            strengthsInfo.coords.lng
+            targetLat,
+            targetLng
           );
           distanceText = `Approx. ${distance.toFixed(2)} km from you`;
         }
 
+        // For the map embed
+        const mapsQuery =
+          item.maps_query || `${schoolName} ${item.location || schoolLocation}`;
+
+        const scorePct = Math.max(0, Math.min(100, (item.score || 0) * 100));
+
         return (
           <div
-            key={index}
-            className={`rounded-2xl bg-white border border-blue-100 shadow-md transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-[1.015] p-6 ${
-              isExpanded ? "bg-blue-50" : ""
+            key={item.program_id || index}
+            className={`rounded-2xl bg-white border border-gray-200 shadow-md transition-all duration-300 cursor-pointer hover:shadow-lg p-6 ${
+              isExpanded ? "bg-gray-50" : ""
             }`}
             onClick={() => setExpandedIndex(isExpanded ? null : index)}
           >
-            <div className="flex items-center gap-4 mb-3">
+            <div className="flex items-start gap-4 mb-3">
               {item.school_logo && (
-                <div className="w-16 h-16 flex items-center justify-center bg-white rounded-lg overflow-hidden shadow-sm">
+                <div className="w-16 h-16 flex items-center justify-center bg-white rounded-lg overflow-hidden border">
                   <img
                     src={item.school_logo || "/placeholder.svg"}
                     alt={`${schoolName} logo`}
                     className="w-full h-full object-contain"
                     onError={(e) => {
-                      e.target.src = "/placeholder.svg?height=64&width=64&text=Logo";
+                      e.target.src =
+                        "/placeholder.svg?height=64&width=64&text=Logo";
                     }}
                   />
                 </div>
               )}
-              <div className="flex-1">
-                <h2 className="font-semibold text-lg text-blue-800 mb-1">
+
+              <div className="flex-1 min-w-0">
+                <h2 className="font-semibold text-lg text-gray-900 mb-1">
                   {formatValue(item.name)}
                 </h2>
-                <p className="text-sm text-gray-700 font-medium">
-                  {formatValue(item.school)}
-                </p>
+
+                {/* Render school summary line */}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600">
+                  <span className="inline-flex items-center gap-1">
+                    <GraduationCap className="w-4 h-4 text-indigo-500" />
+                    <span className="font-medium">{schoolName}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Building2 className="w-4 h-4 text-blue-500" />
+                    <span>{item.school_type || schoolType}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="w-4 h-4 text-red-500" />
+                    <span>{item.location || schoolLocation}</span>
+                  </span>
+                </div>
               </div>
-              <div className="text-right">
+
+              <div className="text-right shrink-0">
                 <button
                   className={`text-xs font-medium px-3 py-1 rounded-full border transition mb-2 ${
                     isSelected
-                      ? "bg-red-100 text-red-600 border-red-300 hover:bg-red-200"
-                      : "bg-green-100 text-green-600 border-green-300 hover:bg-green-200"
+                      ? "bg-red-100 text-red-700 border-red-300 hover:bg-red-200"
+                      : "bg-green-100 text-green-700 border-green-300 hover:bg-green-200"
                   }`}
+                  aria-pressed={isSelected}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleCheckboxChange(item);
@@ -301,7 +334,7 @@ function ResultsSection({ results, message }) {
                   {isSelected ? "Remove" : "Add to Compare"}
                 </button>
                 <div className="text-xs text-gray-500">
-                  Score: {(item.score * 100).toFixed(1)}%
+                  Score: {scorePct.toFixed(1)}%
                 </div>
               </div>
             </div>
@@ -310,92 +343,88 @@ function ResultsSection({ results, message }) {
               {formatValue(item.description)}
             </p>
 
+            {/* EXPANDED SECTION: replaced with requested fields */}
             {isExpanded && (
-              <div className="mt-5 space-y-3 text-sm text-gray-700 animate-fade-in border-t pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <p className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-blue-600" />
-                      <strong>School Type:</strong> {schoolType}
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-red-500" />
-                      <strong>Location:</strong> {schoolLocation}
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-green-600" />
-                      <strong>Tuition:</strong>{" "}
-                      {formatValue(item.school?.tuition)}
-                    </p>
-                  </div>
+              <div className="mt-5 space-y-2 text-sm text-gray-700 animate-fade-in">
+                <p className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-blue-600" />
+                  <strong>Type:</strong> {item.school_type || "N/A"}
+                </p>
+                <p className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-red-500" />
+                  <strong>Location:</strong> {item.location || "N/A"}
+                </p>
+                <p className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-green-600" />
+                  <strong>Tuition/Sem:</strong> {item.tuition_per_semester ?? "N/A"}
+                </p>
+                <p className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-green-600" />
+                  <strong>Tuition/Year:</strong> {item.tuition_annual ?? "N/A"}
+                </p>
+                <p className="flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-purple-600" />
+                  <strong>Board Passing Rate:</strong> {item.board_passing_rate || "N/A"}
+                </p>
+                <p className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                  <strong>Category:</strong> {item.category || "N/A"}
+                </p>
+                <p className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-yellow-500" />
+                  <strong>Tuition Notes:</strong> {item.tuition_notes || "N/A"}
+                </p>
+                <p className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-yellow-600" />
+                  <strong>Admission Requirements:</strong> {item.admission_requirements || "N/A"}
+                </p>
+                <p className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-indigo-500" />
+                  <strong>Grade Requirements:</strong> {item.grade_requirements || "N/A"}
+                </p>
+                <p className="flex items-center gap-2">
+                  <ListChecks className="w-4 h-4 text-teal-600" />
+                  <strong>School Requirements:</strong> {item.school_requirements || "N/A"}
+                </p>
 
-                  <div className="space-y-2">
-                    {strengthsInfo.category && (
-                      <p className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-blue-600" />
-                        <strong>Category:</strong> {formatValue(strengthsInfo.category)}
-                      </p>
-                    )}
-                    {strengthsInfo.admission_requirements && (
-                      <p className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-yellow-600" />
-                        <strong>Admission Requirements:</strong>{" "}
-                        {formatValue(strengthsInfo.admission_requirements)}
-                      </p>
-                    )}
-                    {strengthsInfo.grade_requirements && (
-                      <p className="flex items-center gap-2">
-                        <BookOpen className="w-4 h-4 text-indigo-500" />
-                        <strong>Grade Requirements:</strong>{" "}
-                        {formatValue(strengthsInfo.grade_requirements)}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {strengthsInfo.school_website && (
-                  <p className="flex items-center gap-2 pt-2">
+                {item.school_website && (
+                  <p className="flex items-center gap-2">
                     <LinkIcon className="w-4 h-4 text-blue-500" />
                     <strong>Website:</strong>{" "}
                     <a
-                      href={strengthsInfo.school_website}
-                      className="text-blue-600 underline hover:text-blue-800"
+                      href={item.school_website}
+                      className="text-blue-600 underline"
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      Visit School Website
+                      Visit Site
                     </a>
                   </p>
                 )}
 
-                {strengthsInfo.maps_query && (
+                {mapsQuery && (
                   <div className="mt-4 space-y-4">
-                    <div className="bg-gray-100 p-3 rounded-lg">
-                      <p className="text-sm font-medium text-gray-700 mb-2">
-                        School Location
-                      </p>
-                      <iframe
-                        src={`https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${encodeURIComponent(
-                          schoolLocation
-                        )}`}
-                        width="100%"
-                        height="250"
-                        className="rounded-lg border"
-                        loading="lazy"
-                        allowFullScreen
-                        title={`Map of ${schoolName}`}
-                      ></iframe>
-                    </div>
+                    <iframe
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(
+                        mapsQuery
+                      )}&output=embed`}
+                      width="100%"
+                      height="300"
+                      className="rounded-xl border"
+                      loading="lazy"
+                      allowFullScreen
+                      title={`Map of ${schoolName}`}
+                    ></iframe>
+
                     {distanceText ? (
-                      <div className="flex items-center gap-3 bg-blue-50 text-blue-800 p-3 rounded-lg border border-blue-200">
-                        <Ruler className="w-5 h-5 text-blue-600" />
+                      <div className="flex items-center gap-3 bg-gray-100 text-gray-800 p-3 rounded-lg border border-gray-200 shadow-sm">
+                        <Ruler className="w-5 h-5 text-blue-500" />
                         <span className="text-sm font-medium">{distanceText}</span>
                       </div>
                     ) : (
-                      <div className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-lg">
-                        📍 Distance calculation not available. Enable location
-                        services to see how far this school is from you.
+                      <div className="text-sm text-gray-500 italic">
+                        📍 Distance not available. Enable location to see how far this school is.
                       </div>
                     )}
                   </div>
@@ -415,26 +444,26 @@ function ResultsSection({ results, message }) {
             <button
               onClick={() => handleFeedback("positive")}
               disabled={feedbackLoading}
-              className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50"
             >
               <ThumbsUp className="w-5 h-5" />
-              👍 Helpful
+              Helpful
             </button>
             <button
               onClick={() => handleFeedback("negative")}
               disabled={feedbackLoading}
-              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50"
             >
               <ThumbsDown className="w-5 h-5" />
-              👎 Not Helpful
+              Not Helpful
             </button>
             <button
               onClick={() => handleFeedback("not_relevant")}
               disabled={feedbackLoading}
-              className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-medium transition-colors disabled:opacity-50"
             >
               <X className="w-5 h-5" />
-              ❌ Not Relevant
+              Not Relevant
             </button>
           </div>
           {feedbackLoading && (
@@ -458,7 +487,10 @@ function ResultsSection({ results, message }) {
           <button
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-xl shadow transition-colors"
             onClick={() => {
-              console.log("DEBUG: selectedSchools sent to Compare:", selectedSchools);
+              console.log(
+                "DEBUG: selectedSchools sent to Compare:",
+                selectedSchools
+              );
               navigate("/compare", { state: { selectedSchools } });
             }}
           >
