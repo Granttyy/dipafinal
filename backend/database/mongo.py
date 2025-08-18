@@ -17,7 +17,7 @@ try:
     client = MongoClient(MONGO_URI)
 
     # Use the correct database name: 'Unifinder'
-    db = client["Unifinder"]
+    db = client["unifinder_db"]
 
     # Test the connection
     client.admin.command("ping")
